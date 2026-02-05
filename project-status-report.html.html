@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROJECT STATUS REPORT</title>
+
+<style>
+  :root{
+    --bg0:#0b1220;
+    --bg1:#0f1a33;
+    --panel: rgba(255,255,255,0.07);
+    --panel2: rgba(255,255,255,0.09);
+    --border: rgba(255,255,255,0.14);
+    --text: rgba(255,255,255,0.93);
+    --muted: rgba(255,255,255,0.70);
+
+    --ok:#22c55e;
+    --okSoft: rgba(34,197,94,0.16);
+
+    --warn:#fbbf24;
+    --warnSoft: rgba(251,191,36,0.16);
+
+    --bad:#ef4444;
+    --badSoft: rgba(239,68,68,0.16);
+
+    --shadow: 0 18px 40px rgba(0,0,0,0.38);
+    --shadow2: 0 10px 26px rgba(0,0,0,0.30);
+    --r: 18px;
+  }
+
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background:
+      radial-gradient(900px 600px at 10% 10%, rgba(99,102,241,0.26), transparent 58%),
+      radial-gradient(900px 600px at 90% 20%, rgba(34,197,94,0.18), transparent 58%),
+      radial-gradient(900px 600px at 60% 95%, rgba(251,191,36,0.16), transparent 58%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+    color: var(--text);
+    padding: 22px;
+  }
+
+  .wrap{ max-width: 1280px; margin: 0 auto; }
+
+  .header{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap: 14px; margin-bottom: 12px;
+  }
+  .title{ display:flex; flex-direction:column; gap: 6px; }
+  .title h1{ margin:0; font-size: 20px; letter-spacing: 0.2px; text-transform: uppercase; }
+  .meta{ font-size: 12px; color: var(--muted); display:flex; gap: 10px; flex-wrap:wrap; align-items:center; }
+  .meta input{
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+    outline: none;
+    width: 180px;
+  }
+
+  .pillRow{ display:flex; gap: 8px; flex-wrap:wrap; margin-top: 2px; }
+  .pill{
+    display:inline-flex; align-items:center; gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    font-size: 12px;
+    color: var(--muted);
+    user-select:none;
+  }
+  .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .dot.ok{ background: var(--ok); }
+  .dot.warn{ background: var(--warn); }
+  .dot.bad{ background: var(--bad); }
+
+  .actions{
+    display:flex;
+    gap: 8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  button{
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: var(--shadow2);
+  }
+  button:hover{ background: rgba(255,255,255,0.12); }
+  button.primary{
+    border-color: rgba(34,197,94,0.55);
+    background: rgba(34,197,94,0.14);
+  }
+  button.danger{
+    border-color: rgba(239,68,68,0.55);
+    background: rgba(239,68,68,0.14);
+  }
+  button:disabled{
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .kpis{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 12px 0 14px 0;
+  }
+  .kpi{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 12px 12px;
+    box-shadow: var(--shadow2);
+    min-height: 78px;
+  }
+  .kpi .label{ font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
+  .kpi .value{ font-size: 22px; font-weight: 800; line-height: 1.1; }
+  .kpi .sub{ margin-top: 6px; font-size: 12px; color: var(--muted); }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .card{
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    box-shadow: var(--shadow);
+    overflow:hidden;
+    position: relative;
+  }
+  .card::before{
+    content:"";
+    position:absolute; inset:0;
+    background: radial-gradient(500px 160px at 30% -10%, rgba(255,255,255,0.10), transparent 55%);
+    pointer-events:none;
+  }
+  .cardHead{
+    padding: 12px 12px 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    display:flex; align-items:flex-start; justify-content:space-between; gap: 10px;
+  }
+  .cardTitle{ margin:0; font-size: 14px; line-height: 1.25; text-transform: uppercase; }
+  .badge{
+    font-size: 11px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .badge.ok{ border-color: rgba(34,197,94,0.50); background: rgba(34,197,94,0.14); color: rgba(220,252,231,0.95); }
+  .badge.warn{ border-color: rgba(251,191,36,0.55); background: rgba(251,191,36,0.14); color: rgba(255,251,235,0.95); }
+  .badge.bad{ border-color: rgba(239,68,68,0.55); background: rgba(239,68,68,0.14); color: rgba(254,242,242,0.95); }
+
+  .cardBody{ padding: 10px 12px 12px 12px; }
+
+  .progressRow{ display:flex; align-items:center; gap: 10px; margin-bottom: 10px; }
+  .progress{
+    height: 10px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    overflow:hidden;
+    flex:1;
+  }
+  .bar{ height: 100%; width: 0%; background: linear-gradient(90deg, var(--ok), rgba(34,197,94,0.60)); }
+  .pct{ font-size: 12px; color: var(--muted); min-width: 72px; text-align:right; }
+
+  .items{ list-style:none; margin:0; padding:0; display:grid; gap: 8px; }
+  .item{
+    display:flex; align-items:center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    user-select:none;
+  }
+  .item[aria-disabled="true"]{ cursor: not-allowed; opacity: 0.85; }
+  .icon{
+    width: 24px; height: 24px; border-radius: 9px;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-weight: 900; font-size: 12px;
+    flex: 0 0 24px;
+  }
+  .name{ flex:1; font-size: 12.5px; color: var(--text); text-transform: uppercase; }
+  .st{ font-size: 11px; color: var(--muted); white-space:nowrap; text-transform: uppercase; }
+
+  .item.done{ border-color: rgba(34,197,94,0.24); background: var(--okSoft); }
+  .item.done .icon{ background: rgba(34,197,94,0.20); border: 1px solid rgba(34,197,94,0.55); color: rgba(220,252,231,0.96); }
+
+  .item.notdone{ border-color: rgba(251,191,36,0.22); background: rgba(255,255,255,0.03); }
+  .item.notdone .icon{ background: rgba(251,191,36,0.14); border: 1px solid rgba(251,191,36,0.52); color: rgba(255,251,235,0.96); }
+
+  .item.overdue{ border-color: rgba(239,68,68,0.26); background: var(--badSoft); }
+  .item.overdue .icon{ background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.55); color: rgba(254,242,242,0.96); }
+  .item.overdue .st{ color: rgba(254,242,242,0.95); }
+
+  .footer{
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    background: rgba(255,255,255,0.06);
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* PRINT VIEW (layout only) */
+  .printOnly{ display:none; }
+  .screenOnly{ display:block; }
+
+  .printSectionTitle{
+    font-size: 14px;
+    font-weight: 800;
+    margin: 14px 0 8px 0;
+    text-transform: uppercase;
+  }
+  .printGrid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .printCard{
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 10px;
+    background: #fff;
+    color: #111;
+  }
+  .printCard h3{
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+  .printList{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .printRow{
+    display:flex;
+    justify-content:space-between;
+    gap: 10px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 6px 8px;
+  }
+  .printRow .l{ display:flex; gap: 8px; align-items:center; }
+  .printRow .s{ color:#333; text-transform: uppercase; }
+
+  /* PRINT HEADER (guaranteed in PDF) */
+  .printHeader{
+    margin: 6px 0 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #fff;
+    color:#111;
+  }
+  .printHeaderTop{ display:flex; flex-direction:column; gap:6px; }
+  .phTitle{ font-weight: 900; font-size: 16px; text-transform: uppercase; }
+  .phMeta{ font-size: 12px; color:#333; text-transform: uppercase; display:flex; gap:8px; flex-wrap:wrap; }
+
+  .printKpis{
+    margin-top: 10px;
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .pk{
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 8px;
+    background:#fafafa;
+  }
+  .pk .l{ font-size: 11px; color:#444; text-transform: uppercase; margin-bottom:6px; }
+  .pk .v{ font-size: 16px; font-weight: 900; }
+
+  @media (max-width: 1100px){
+    .kpis{ grid-template-columns: repeat(2, 1fr); }
+    .grid{ grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 700px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  /* EXPORT MODE */
+  body.exporting .screenOnly{ display:none !important; }
+  body.exporting .printOnly{ display:block !important; }
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <!-- DATA -->
+  <script>
+    const REPORT = {
+      title: "PROJECT STATUS REPORT",
+      dateText: "2026-02-04",
+      footerText: "PROJECTS WITH INCOMPLETE ITEMS REQUIRE COMPLETION AS DIRECTED, STATUS REFLECTS THE DATA AS OF THE REPORT DATE ABOVE.",
+      items: [
+        "GOVERNMENT VIOLATIONS",
+        "INCIDENT / NEAR MISS LOG",
+        "NCR",
+        "ARCHIVING",
+        "KPIS",
+        "OBSERVATIONS"
+      ],
+      PIN_MIN_LEN: 4,
+      projects: [
+        { name: "JEDDAH TOWER", states: Array(6).fill(0) },
+        { name: "DIRAB ROAD",   states: Array(6).fill(0) },
+        { name: "KFSC",         states: Array(6).fill(0) },
+        { name: "SANG QASSIM",  states: Array(6).fill(0) },
+        { name: "SANG JEDDAH",  states: Array(6).fill(0) },
+        { name: "SANG TAIF",    states: Array(6).fill(0) },
+        { name: "VALINA",       states: Array(6).fill(0) },
+        { name: "KFSH",         states: Array(6).fill(0) },
+        { name: "KSU",          states: Array(6).fill(0) },   
+        { name: "CFD",          states: Array(6).fill(0) },
+        { name: "HHR",          states: Array(6).fill(0) },
+        { name: "KAIA",         states: Array(6).fill(0) },
+        { name: "SEVEN",        states: Array(6).fill(0) }
+      ]
+    };
+  </script>
+
+  <div class="header">
+    <div class="title">
+      <h1 id="hdrTitle"></h1>
+      <div class="meta">
+        <span>DATE</span>
+        <input id="dateInput" type="text" />
+        <span>, AUDIENCE, GENERAL MANAGER</span>
+        <span id="lockStatePill" class="pill" style="margin-left:10px;"></span>
+      </div>
+      <div class="pillRow">
+        <span class="pill"><span class="dot ok"></span> DONE</span>
+        <span class="pill"><span class="dot warn"></span> NOT DONE</span>
+        <span class="pill"><span class="dot bad"></span> NOT DONE, OVERDUE</span>
+        <span class="pill">CLICK CYCLE, NOT DONE, DONE, OVERDUE</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="btnPrint">EXPORT PDF</button>
+      <button id="btnLock">LOCK EDITING</button>
+      <button class="danger" id="btnReset">RESET</button>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="label">TOTAL PROJECTS</div>
+      <div class="value" id="kpiTotal"></div>
+      <div class="sub">PROJECTS INCLUDED IN THIS REPORT</div>
+    </div>
+    <div class="kpi">
+      <div class="label">COMPLETED PROJECTS</div>
+      <div class="value" id="kpiComplete"></div>
+      <div class="sub">ALL ITEMS DONE</div>
+    </div>
+    <div class="kpi">
+      <div class="label">PROJECTS WITH PENDING ITEMS</div>
+      <div class="value" id="kpiHasPending"></div>
+      <div class="sub">AT LEAST ONE ITEM NOT DONE</div>
+    </div>
+    <div class="kpi">
+      <div class="label">OVERALL COMPLETION RATE</div>
+      <div class="value" id="kpiOverall"></div>
+      <div class="sub">ACROSS ALL PROJECTS, ALL ITEMS</div>
+    </div>
+  </div>
+
+  <!-- SCREEN VIEW -->
+  <div class="screenOnly">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- EXPORT PDF VIEW -->
+  <div class="printOnly" id="printRoot">
+
+    <!-- GUARANTEED HEADER IN PDF -->
+    <div class="printHeader">
+      <div class="printHeaderTop">
+        <div class="phTitle" id="printHdrTitle"></div>
+        <div class="phMeta">
+          <span>DATE</span>
+          <span id="printHdrDate"></span>
+          <span>, AUDIENCE, GENERAL MANAGER</span>
+        </div>
+      </div>
+
+      <div class="printKpis">
+        <div class="pk"><div class="l">TOTAL PROJECTS</div><div class="v" id="pkTotal"></div></div>
+        <div class="pk"><div class="l">COMPLETED PROJECTS</div><div class="v" id="pkComplete"></div></div>
+        <div class="pk"><div class="l">PROJECTS WITH PENDING ITEMS</div><div class="v" id="pkPending"></div></div>
+        <div class="pk"><div class="l">OVERALL COMPLETION RATE</div><div class="v" id="pkOverall"></div></div>
+      </div>
+    </div>
+
+    <div class="printSectionTitle" id="printDoneTitle">COMPLETED PROJECTS</div>
+    <div class="printGrid" id="printDone"></div>
+
+    <div class="printSectionTitle" id="printPendingTitle">INCOMPLETE PROJECTS</div>
+    <div class="printGrid" id="printPending"></div>
+  </div>
+
+  <div class="footer" id="footer"></div>
+</div>
+
+<!-- PDF generator library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+  const STORAGE_KEY = "pm_report_state_premium_v4";
+  const PIN_KEY = "pm_report_pin_hash_premium_v4";
+
+  async function sha256Hex(str){
+    const enc = new TextEncoder().encode(str);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,"0")).join("");
+  }
+
+  function pct(n, d){ return d ? (n/d)*100 : 0; }
+  function fmtPct(x){
+    const v = Math.round(x*100)/100;
+    return (Number.isInteger(v) ? v.toFixed(0) : v.toFixed(2)) + "%";
+  }
+  function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+  const DEFAULT_STATE = {
+    title: String(REPORT.title || "PROJECT STATUS REPORT").toUpperCase(),
+    dateText: String(REPORT.dateText || ""),
+    footerText: String(REPORT.footerText || ""),
+    items: (REPORT.items || []).map(s => String(s).toUpperCase()),
+    projects: (REPORT.projects || []).map(p => ({
+      name: String(p.name || "").toUpperCase(),
+      states: Array.isArray(p.states) ? p.states.slice() : Array((REPORT.items||[]).length).fill(0)
+    })),
+    locked: false
+  };
+
+  function safeParse(raw){
+    try{ return JSON.parse(raw); }catch{ return null; }
+  }
+
+  function loadState(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = safeParse(raw);
+    if(!parsed) return deepClone(DEFAULT_STATE);
+
+    const base = deepClone(DEFAULT_STATE);
+
+    if(typeof parsed.title === "string" && parsed.title.trim()) base.title = parsed.title.toUpperCase();
+    if(typeof parsed.dateText === "string") base.dateText = parsed.dateText;
+    if(typeof parsed.footerText === "string") base.footerText = parsed.footerText;
+    if(typeof parsed.locked === "boolean") base.locked = parsed.locked;
+
+    if(Array.isArray(parsed.items) && parsed.items.length === base.items.length){
+      base.items = parsed.items.map(s => String(s).toUpperCase());
+    }
+
+    if(Array.isArray(parsed.projects) && parsed.projects.length === base.projects.length){
+      base.projects = base.projects.map((bp, idx) => {
+        const p = parsed.projects[idx];
+        const out = { name: bp.name, states: bp.states.slice() };
+        if(p && typeof p.name === "string" && p.name.trim()) out.name = p.name.toUpperCase();
+        if(p && Array.isArray(p.states) && p.states.length === bp.states.length){
+          out.states = p.states.map(x => (x===0||x===1||x===2) ? x : 0);
+        }
+        return out;
+      });
+    }
+
+    return base;
+  }
+
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+  }
+
+  function projectBadgeClass(doneCount, total){
+    const p = pct(doneCount, total);
+    if(p >= 80) return "ok";
+    if(p >= 40) return "warn";
+    return "bad";
+  }
+
+  function barGradient(doneCount,total){
+    const p = pct(doneCount,total);
+    if(p >= 80) return "linear-gradient(90deg, var(--ok), rgba(34,197,94,0.60))";
+    if(p >= 40) return "linear-gradient(90deg, var(--warn), rgba(251,191,36,0.60))";
+    return "linear-gradient(90deg, var(--bad), rgba(239,68,68,0.60))";
+  }
+
+  function lockLabel(){
+    return STATE.locked ? "STATUS, LOCKED WITH PIN" : "STATUS, EDITABLE";
+  }
+
+  async function ensurePinSet(){
+    const existing = localStorage.getItem(PIN_KEY);
+    if(existing) return true;
+
+    const minLen = Number(REPORT.PIN_MIN_LEN || 4);
+    const pin1 = prompt(`SET A PIN TO LOCK EDITING, MINIMUM ${minLen} CHARACTERS`);
+    if(!pin1 || pin1.trim().length < minLen){
+      alert("PIN NOT SET, LOCK CANCELLED.");
+      return false;
+    }
+    const pin2 = prompt("RE ENTER PIN TO CONFIRM");
+    if(pin1 !== pin2){
+      alert("PIN MISMATCH, LOCK CANCELLED.");
+      return false;
+    }
+    const hash = await sha256Hex(pin1.trim());
+    localStorage.setItem(PIN_KEY, hash);
+    return true;
+  }
+
+  async function verifyPin(){
+    const stored = localStorage.getItem(PIN_KEY);
+    if(!stored) return false;
+    const pin = prompt("ENTER PIN TO UNLOCK EDITING");
+    if(!pin) return false;
+    const hash = await sha256Hex(pin.trim());
+    if(hash !== stored){
+      alert("INCORRECT PIN.");
+      return false;
+    }
+    return true;
+  }
+
+  function screenItemView(state){
+    if(state === 1) return { cls:"done", icon:"✔", text:"DONE" };
+    if(state === 2) return { cls:"overdue", icon:"⚠", text:"NOT DONE, OVERDUE" };
+    return { cls:"notdone", icon:"◯", text:"NOT DONE" };
+  }
+
+  function printRowView(state){
+    if(state === 1) return { icon:"✔", text:"DONE" };
+    if(state === 2) return { icon:"⚠", text:"NOT DONE, OVERDUE" };
+    return { icon:"◯", text:"NOT DONE" };
+  }
+
+  function buildPrintCard(p){
+    const total = STATE.items.length;
+    const doneCount = p.states.filter(s => s === 1).length;
+
+    const box = document.createElement("div");
+    box.className = "printCard";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = `${p.name} (${doneCount}/${total})`;
+    box.appendChild(h3);
+
+    const ul = document.createElement("ul");
+    ul.className = "printList";
+
+    STATE.items.forEach((itemName, i) => {
+      const v = printRowView(p.states[i]);
+
+      const li = document.createElement("li");
+      li.className = "printRow";
+
+      const left = document.createElement("span");
+      left.className = "l";
+      left.textContent = `${v.icon} ${itemName}`;
+
+      const right = document.createElement("span");
+      right.className = "s";
+      right.textContent = v.text;
+
+      li.appendChild(left);
+      li.appendChild(right);
+      ul.appendChild(li);
+    });
+
+    box.appendChild(ul);
+    return box;
+  }
+
+  let STATE = loadState();
+
+  function render(){
+    document.getElementById("hdrTitle").textContent = STATE.title;
+    document.getElementById("footer").textContent = STATE.footerText;
+
+    const dateInput = document.getElementById("dateInput");
+    dateInput.value = STATE.dateText;
+    dateInput.disabled = false;
+
+    document.getElementById("lockStatePill").textContent = lockLabel();
+    document.getElementById("btnLock").textContent = STATE.locked ? "UNLOCK EDITING" : "LOCK EDITING";
+
+    const totalProjects = STATE.projects.length;
+    const totalItemsPerProject = STATE.items.length;
+
+    let completeCount = 0;
+    let totalDone = 0;
+    const totalAll = totalProjects * totalItemsPerProject;
+
+    const doneList = [];
+    const pendingList = [];
+
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+
+    STATE.projects.forEach((p, pIdx) => {
+      const doneCount = p.states.filter(s => s === 1).length;
+      totalDone += doneCount;
+
+      const isComplete = doneCount === totalItemsPerProject;
+      if(isComplete){ completeCount++; doneList.push(p); } else { pendingList.push(p); }
+
+      const percent = pct(doneCount, totalItemsPerProject);
+      const badgeCls = projectBadgeClass(doneCount, totalItemsPerProject);
+
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const head = document.createElement("div");
+      head.className = "cardHead";
+
+      const h2 = document.createElement("h2");
+      h2.className = "cardTitle";
+      h2.textContent = p.name;
+
+      const badge = document.createElement("span");
+      badge.className = "badge " + badgeCls;
+      badge.textContent = `${doneCount}/${totalItemsPerProject}`;
+
+      head.appendChild(h2);
+      head.appendChild(badge);
+
+      const body = document.createElement("div");
+      body.className = "cardBody";
+
+      const pr = document.createElement("div");
+      pr.className = "progressRow";
+
+      const prog = document.createElement("div");
+      prog.className = "progress";
+
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      bar.style.width = percent.toFixed(2) + "%";
+      bar.style.background = barGradient(doneCount, totalItemsPerProject);
+
+      prog.appendChild(bar);
+
+      const pctEl = document.createElement("div");
+      pctEl.className = "pct";
+      pctEl.textContent = fmtPct(percent);
+
+      pr.appendChild(prog);
+      pr.appendChild(pctEl);
+
+      const ul = document.createElement("ul");
+      ul.className = "items";
+
+      STATE.items.forEach((itemName, i) => {
+        const v = screenItemView(p.states[i]);
+
+        const li = document.createElement("li");
+        li.className = "item " + v.cls;
+        li.setAttribute("aria-disabled", STATE.locked ? "true" : "false");
+        li.innerHTML = `<span class="icon">${v.icon}</span><span class="name">${itemName}</span><span class="st">${v.text}</span>`;
+
+        li.addEventListener("click", () => {
+          if(STATE.locked) return;
+          STATE.projects[pIdx].states[i] = (STATE.projects[pIdx].states[i] + 1) % 3;
+          saveState();
+          render();
+        });
+
+        ul.appendChild(li);
+      });
+
+      body.appendChild(pr);
+      body.appendChild(ul);
+
+      card.appendChild(head);
+      card.appendChild(body);
+
+      grid.appendChild(card);
+    });
+
+    const overallPct = totalAll ? (totalDone / totalAll) * 100 : 0;
+
+    document.getElementById("kpiTotal").textContent = totalProjects;
+    document.getElementById("kpiComplete").textContent = completeCount;
+    document.getElementById("kpiHasPending").textContent = totalProjects - completeCount;
+    document.getElementById("kpiOverall").textContent = fmtPct(overallPct);
+
+    // Export grouping
+    const printDone = document.getElementById("printDone");
+    const printPending = document.getElementById("printPending");
+    printDone.innerHTML = "";
+    printPending.innerHTML = "";
+
+    doneList.forEach(p => printDone.appendChild(buildPrintCard(p)));
+    pendingList.forEach(p => printPending.appendChild(buildPrintCard(p)));
+
+    document.getElementById("printDoneTitle").textContent = `COMPLETED PROJECTS (${doneList.length})`;
+    document.getElementById("printPendingTitle").textContent = `INCOMPLETE PROJECTS (${pendingList.length})`;
+
+    // Print header values (guaranteed in PDF)
+    const t = document.getElementById("printHdrTitle");
+    if(t) t.textContent = STATE.title;
+
+    const d = document.getElementById("printHdrDate");
+    if(d) d.textContent = STATE.dateText;
+
+    const pkTotal = document.getElementById("pkTotal");
+    if(pkTotal) pkTotal.textContent = totalProjects;
+
+    const pkComplete = document.getElementById("pkComplete");
+    if(pkComplete) pkComplete.textContent = completeCount;
+
+    const pkPending = document.getElementById("pkPending");
+    if(pkPending) pkPending.textContent = (totalProjects - completeCount);
+
+    const pkOverall = document.getElementById("pkOverall");
+    if(pkOverall) pkOverall.textContent = fmtPct(overallPct);
+  }
+
+  async function exportPdf(){
+    if(typeof html2pdf === "undefined"){
+      alert("PDF EXPORT LIBRARY NOT LOADED. IF YOUR NETWORK BLOCKS CDN, USE A LOCAL COPY OF html2pdf.bundle.min.js.");
+      return;
+    }
+
+    // make sure date is the latest before exporting
+    const dateVal = (document.getElementById("dateInput")?.value || "").trim();
+    STATE.dateText = dateVal;
+    saveState();
+    render();
+
+    // show export layout
+    document.body.classList.add("exporting");
+
+    // allow layout to reflow
+    await new Promise(r => setTimeout(r, 200));
+
+    const safeDate = dateVal ? dateVal.replace(/[^\dA-Za-z\-_.]/g, "_") : "DATE";
+    const filename = `PROJECT_STATUS_REPORT_${safeDate}.pdf`;
+
+    const element = document.querySelector(".wrap");
+
+    const opt = {
+      margin: 0.35,
+      filename,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+
+        // prevent top cropping
+        scrollX: 0,
+        scrollY: -window.scrollY,
+
+        // capture full layout size
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+
+        // stable background for print section
+        backgroundColor: "#ffffff"
+      },
+      jsPDF: {
+        unit: "in",
+        format: "a3",
+        orientation: "landscape"
+      },
+      pagebreak: { mode: ["css", "legacy"] }
+    };
+
+    try{
+      await html2pdf().set(opt).from(element).save();
+    } finally {
+      document.body.classList.remove("exporting");
+    }
+  }
+
+  document.getElementById("btnPrint").addEventListener("click", exportPdf);
+
+  document.getElementById("btnLock").addEventListener("click", async () => {
+    if(!STATE.locked){
+      const ok = await ensurePinSet();
+      if(!ok) return;
+      STATE.locked = true;
+      saveState();
+      render();
+      return;
+    }
+    const ok = await verifyPin();
+    if(!ok) return;
+    STATE.locked = false;
+    saveState();
+    render();
+  });
+
+  document.getElementById("btnReset").addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(PIN_KEY);
+    STATE = deepClone(DEFAULT_STATE);
+    saveState();
+    render();
+  });
+
+  document.getElementById("dateInput").addEventListener("input", (e) => {
+    STATE.dateText = e.target.value;
+    saveState();
+    render();
+  });
+
+  saveState();
+  render();
+</script>
+
+</body>
+</html>
